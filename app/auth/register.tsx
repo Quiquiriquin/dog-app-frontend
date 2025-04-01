@@ -1,76 +1,42 @@
-import { Image, View } from "react-native";
-import React, { useRef } from "react";
+import {
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  useWindowDimensions,
+  View,
+} from "react-native";
+import React, { useEffect, useRef, useState } from "react";
 import { VStack } from "@/components/ui/vstack";
 import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
-import {
-  FormControl,
-  FormControlError,
-  FormControlErrorIcon,
-  FormControlErrorText,
-  FormControlLabel,
-  FormControlLabelText,
-} from "@/components/ui/form-control";
-import { Input, InputField } from "@/components/ui/input";
-import { AlertCircleIcon } from "@/components/ui/icon";
 import { Button, ButtonText } from "@/components/ui/button";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import LottieLoader from "@/components/LottieLoader";
+import { FormProvider, useForm } from "react-hook-form";
+import FormHookInput from "@/components/FormHookInput";
+import { useMutation } from "@apollo/client";
+import { SIGNUP_USER } from "@/requests/mutations/user.mutations";
+import {
+  Toast,
+  ToastDescription,
+  ToastTitle,
+  useToast,
+} from "@/components/ui/toast";
 
 export default function Register() {
+  const toast = useToast();
+  const methods = useForm({
+    mode: "onBlur",
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
   const [step, setStep] = React.useState(0);
   const ref = useRef<BottomSheet>(null);
-
-  const renderContent = () => {
-    switch (step) {
-      case 0:
-        return (
-          <>
-            <Text size="2xl" bold>
-              Ingresa tu correo electrónico
-            </Text>
-            <FormControl className="w-full">
-              <FormControlLabel>
-                <FormControlLabelText>Correo electrónico</FormControlLabelText>
-              </FormControlLabel>
-              <Input size="xl">
-                <InputField placeholder="correo@ejemplo.com" />
-              </Input>
-              <FormControlError>
-                <FormControlErrorIcon as={AlertCircleIcon} />
-                <FormControlErrorText>
-                  El correo electrónico es inválido
-                </FormControlErrorText>
-              </FormControlError>
-            </FormControl>
-          </>
-        );
-      case 1:
-        return (
-          <>
-            <Text size="2xl" bold>
-              Ahora, crea tu contraseña
-            </Text>
-            <FormControl className="w-full">
-              <FormControlLabel>
-                <FormControlLabelText>Contraseña</FormControlLabelText>
-              </FormControlLabel>
-              <Input size="xl">
-                <InputField placeholder="********" type="password" />
-              </Input>
-              <FormControlError>
-                <FormControlErrorIcon as={AlertCircleIcon} />
-                <FormControlErrorText>
-                  La contraseña es inválida
-                </FormControlErrorText>
-              </FormControlError>
-            </FormControl>
-          </>
-        );
-      default:
-        return null;
-    }
-  };
+  const [signupUser, { data, loading, error }] = useMutation(SIGNUP_USER);
 
   const handleNextStep = () => {
     setStep((prev) => prev + 1);
@@ -87,41 +53,143 @@ export default function Register() {
     }
   };
 
-  return (
-    <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
-      <Box className="justify-center items-center flex-1">
-        <View>
-          <Image
-            source={require("@/assets/images/signup.png")}
-            alt="Singup"
-            className="object-cover"
-            resizeMethod="resize"
-            resizeMode="contain"
+  const { width, height } = useWindowDimensions();
+
+  const onSubmit = async () => {
+    console.log("Form data:", methods.getValues());
+    // Call your signup mutation here
+    // await signupUser(data);
+    // After successful signup, you can navigate to the next screen or show a success message
+    signupUser({
+      variables: {
+        input: {
+          email: methods.getValues("email"),
+          password: methods.getValues("password"),
+        },
+      },
+    });
+    setStep(2);
+  };
+
+  useEffect(() => {
+    if (data) {
+      toast.show({
+        placement: "top",
+        duration: 3000,
+        render: () => {
+          const uniqueToastId = `toast-${Math.random()
+            .toString(36)
+            .substr(2, 9)}`;
+          return (
+            <Toast nativeID={uniqueToastId} action="success" variant="solid">
+              <ToastTitle>¡Te has registrado correctamente!</ToastTitle>
+              <ToastDescription>
+                Te hemos enviado un correo electrónico para verificar tu cuenta.
+              </ToastDescription>
+            </Toast>
+          );
+        },
+      });
+    }
+  }, [data]);
+
+  useEffect(() => {
+    console.log("DAerrorA: ", JSON.stringify(error));
+  }, [error]);
+
+  const Questions = ({ currentStep }: { currentStep: number }) => {
+    if (currentStep === 0) {
+      return (
+        <>
+          <Text size="2xl" bold>
+            Ingresa tu correo electrónico
+          </Text>
+          <FormHookInput
+            name="email"
+            label="Correo electrónico"
+            placeholder="correo@ejemplo.com"
           />
-        </View>
-        <BottomSheet
-          enableDynamicSizing
-          handleComponent={null}
-          snapPoints={["35%", "50%"]}
-          enablePanDownToClose={false}
-          ref={ref}
-          index={0}
+        </>
+      );
+    }
+
+    if (currentStep === 1) {
+      return (
+        <>
+          <Text size="2xl" bold>
+            Ahora, crea tu contraseña
+          </Text>
+          <FormHookInput
+            name="password"
+            label="Contraseña"
+            placeholder="correo@ejemplo.com"
+          />
+        </>
+      );
+    }
+
+    return <></>;
+  };
+
+  return (
+    <FormProvider {...methods}>
+      <SafeAreaProvider>
+        <SafeAreaView
+          style={{
+            flex: 1,
+            maxWidth: width,
+            maxHeight: height,
+            overflow: "hidden",
+          }}
+          edges={["top"]}
         >
-          <BottomSheetView className="p-8">
-            <VStack space="md" className="w-full">
-              {renderContent()}
-              <Button
-                onPress={handleNextStep}
-                size="xl"
-                variant={step === 1 ? "solid" : "outline"}
-                className="mt-2"
+          <Box className="justify-center items-center flex-1">
+            <Image
+              source={require("@/assets/images/signup.png")}
+              resizeMode="cover"
+            />
+            <BottomSheet
+              enableDynamicSizing
+              handleComponent={null}
+              snapPoints={["35%", "50%"]}
+              enablePanDownToClose={false}
+              ref={ref}
+            >
+              <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                style={{ flex: 1 }}
               >
-                <ButtonText>{renderCTALabel()}</ButtonText>
-              </Button>
-            </VStack>
-          </BottomSheetView>
-        </BottomSheet>
-      </Box>
-    </SafeAreaView>
+                <ScrollView
+                  contentContainerStyle={{ flexGrow: 1 }}
+                  keyboardShouldPersistTaps="handled"
+                >
+                  <BottomSheetView className="p-8">
+                    <VStack space="md" className="w-full">
+                      <Questions currentStep={step} />
+                      {loading ||
+                        (step === 2 && (
+                          <View className="flex flex-row items-center justify-center">
+                            <LottieLoader />
+                          </View>
+                        ))}
+                      {step < 2 && (
+                        <Button
+                          onPress={step === 1 ? onSubmit : handleNextStep}
+                          size="xl"
+                          variant={step === 1 ? "solid" : "outline"}
+                          className="mt-2"
+                        >
+                          <ButtonText>{renderCTALabel()}</ButtonText>
+                        </Button>
+                      )}
+                    </VStack>
+                  </BottomSheetView>
+                </ScrollView>
+              </KeyboardAvoidingView>
+            </BottomSheet>
+          </Box>
+        </SafeAreaView>
+      </SafeAreaProvider>
+    </FormProvider>
   );
 }

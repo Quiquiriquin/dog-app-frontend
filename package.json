@@ -15,6 +15,7 @@
     "preset": "jest-expo"
   },
   "dependencies": {
+    "@apollo/client": "^3.13.5",
     "@expo/vector-icons": "^14.0.2",
     "@gluestack-ui/button": "^1.0.14",
     "@gluestack-ui/form-control": "^0.1.19",
@@ -24,6 +25,7 @@
     "@gluestack-ui/overlay": "^0.1.22",
     "@gluestack-ui/toast": "^1.0.9",
     "@gorhom/bottom-sheet": "^5.1.2",
+    "@legendapp/motion": "^2.4.0",
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/native": "^7.0.14",
     "babel-plugin-module-resolver": "^5.0.2",
@@ -40,6 +42,8 @@
     "expo-symbols": "~0.2.2",
     "expo-system-ui": "~4.0.8",
     "expo-web-browser": "~14.0.2",
+    "graphql": "^16.10.0",
+    "lottie-react-native": "7.1.0",
     "nativewind": "^4.1.23",
     "react": "18.3.1",
     "react-dom": "18.3.1",

@@ -15,7 +15,8 @@ import { useEffect } from "react";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { AuthProvider } from "@/context/AuthContext";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-
+import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
+import { ApolloContextProvider } from "@/context/ApolloContext";
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
@@ -35,23 +36,32 @@ export default function RootLayout() {
     return null;
   }
 
+  const client = new ApolloClient({
+    uri: "localhost:4000/graphql",
+    cache: new InMemoryCache(),
+  });
+
   return (
-    <GluestackUIProvider mode="light">
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <AuthProvider>
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="auth/register"
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-          </GestureHandlerRootView>
-          <StatusBar style="auto" />
-        </AuthProvider>
-      </ThemeProvider>
-    </GluestackUIProvider>
+    <ApolloContextProvider>
+      <GluestackUIProvider mode="light">
+        <ThemeProvider
+          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+        >
+          <AuthProvider>
+            <GestureHandlerRootView style={{ flex: 1 }}>
+              <Stack>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="auth/register"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen name="+not-found" />
+              </Stack>
+            </GestureHandlerRootView>
+            <StatusBar style="auto" />
+          </AuthProvider>
+        </ThemeProvider>
+      </GluestackUIProvider>
+    </ApolloContextProvider>
   );
 }
