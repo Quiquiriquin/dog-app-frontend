@@ -1,20 +1,4 @@
-import { gql, useApolloClient } from "@apollo/client";
-
-export const signupUser = async () => {
-  try {
-    return await client.mutate({
-      mutation: SIGNUP_USER,
-      variables: {
-        input: {
-          email: String,
-          password: String,
-        },
-      },
-    });
-  } catch (e) {
-    console.error(e);
-  }
-};
+import { gql } from "@apollo/client";
 
 export const SIGNUP_USER = gql`
   mutation ($input: CreateUserInput!) {
